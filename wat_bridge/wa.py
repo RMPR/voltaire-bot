@@ -92,7 +92,10 @@ class WaLayer(YowInterfaceLayer):
         # body = "NULL"
         if message.getType() == "text":
             logger.debug("is text message")
-            body = message.getBody().decode()
+            if(isinstance(message, TextMessageProtocolEntity)):
+                body = message.conversation
+            else:
+                body = message.text
 
             if body == '/getID' or body == '/link':
                 self.send_msg(phone=sender, message="/link " + sender)
@@ -163,10 +166,12 @@ class WaLayer(YowInterfaceLayer):
             SIGNAL_TG.send('wabot', phone=sender, message=TheRealMessageToSend, media=False)
 
         if message.getType() == "media":
+            pass
+            """
           if not os.path.exists("./DOWNLOADS"):
             os.makedirs("./DOWNLOADS")
           # set unique filename
-          uniqueFilename = "./DOWNLOADS/%s-%s%s" % (hashlib.md5(str(message.getFrom(False)).encode('utf-8')).hexdigest(), uuid.uuid4().hex, message.getExtension())
+          uniqueFilename = "./DOWNLOADS/%s-%s%s" % (hashlib.md5(str(message.getFrom(False)).encode('utf-8')).hexdigest(), uuid.uuid4().hex, ".jpg")
           if message.getMediaType() == "image":
             logger.info("Echoing image %s to %s" % (message.url, message.getFrom(False)))
             data = message.getMediaContent()
@@ -205,6 +210,7 @@ class WaLayer(YowInterfaceLayer):
           # Relay to Telegram
           logger.info('relaying message to Telegram')
           SIGNAL_TG.send('wabot', phone=sender, message=TheRealMessageToSend, media=True)
+            """
 
     @ProtocolEntityCallback('receipt')
     def on_receipt(self, entity):
@@ -260,7 +266,7 @@ _connect_signal = YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT)
 
 WA_STACK = (
     YowStackBuilder()
-	.pushDefaultLayers(True)
+	.pushDefaultLayers()
 	# .pushDefaultLayers(False)
 	.push(wabot)
 	.build()
